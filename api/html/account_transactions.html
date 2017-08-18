@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+    <table id="data_table" class="display" cellspacing="0" width="100%">
+        <thead>
+        <tr>
+            <th>Source account</th>
+            <th>amount</th>
+            <th>Destination account</th>
+            <th>Date of transactions</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for transaction in list_of_transactions %}
+            <tr>
+                <th>{{ transaction.source.identifier }}</th>
+                <th>{{ transaction.amount }}</th>
+                <th>{{ transaction.destination.identifier }}</th>
+                <th>{{ transaction.created_at }}</th>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock content %}

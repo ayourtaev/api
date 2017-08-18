@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+    <table id="data_table" class="display" cellspacing="0" width="100%">
+        <thead>
+        <tr>
+            <th>Identifier</th>
+            <th>Balance</th>
+            <th>Currency</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for account in list_of_accounts %}
+            <tr>
+                <th><a href="{% url 'account_detail' pk=account.identifier %}/">{{ account.identifier }}</th>
+                <th><a href="{% url 'account_detail' pk=account.identifier %}/">{{ account.balance }}</th>
+                <th><a href="{% url 'account_detail' pk=account.identifier %}/">{{ account.currency }}</th>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock content %}
