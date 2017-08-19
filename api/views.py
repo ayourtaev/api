@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.db.models import Q
 
 from rest_framework import generics
@@ -7,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_201_CREATED
 from rest_framework.views import APIView
 
+from api.constants import DECLINED, COMPLETED
 from api.models import Account, Transaction
 from api.permissions import AuthTokenKeeper
 from api.serializers import AccountDetailsSerializer, AccountSerializer, TransactionSerializer
@@ -59,7 +62,7 @@ class TransactionsCreateView(CreateAPIView):
     def perform_create(self, serializer):
         source = Account.objects.filter(identifier=serializer.validated_data.get('sourceAccount')).first()
         dest = Account.objects.filter(identifier=serializer.validated_data.get('destAccount')).first()
-        amount = serializer.validated_data.get('amount')
+        amount = Decimal(serializer.validated_data.get('amount'))
 
         if source and dest:
             if source.currency != dest.currency:
@@ -67,30 +70,28 @@ class TransactionsCreateView(CreateAPIView):
                 dest_calc = calc_currency(dest.currency, amount)
                 if source.balance - source_calc < 0:
                     return Transaction.objects.create(sourceAccount=source, destAccount=dest, amount=amount,
-                                                      status='Declined')
+                                                      state=DECLINED)
                 else:
                     source.balance -= source_calc
                     source.save()
                     dest.balance += dest_calc
                     dest.save()
-
                     return Transaction.objects.create(sourceAccount=source, destAccount=dest, amount=amount,
-                                                      status='Completed')
+                                                      state=DECLINED)
 
         if not source:
-            dest_calc = calc_currency(dest.currency, amount)
-            dest.balance += dest_calc
+            dest.balance += amount
             dest.save()
             return Transaction.objects.create(sourceAccount=source, destAccount=dest, amount=amount,
-                                              status='Completed')
+                                              state=COMPLETED)
         if not dest:
             if source.balance - amount < 0:
-                Transaction.objects.create(sourceAccount=source, destAccount=dest, amount=amount, status='Declined')
+                return Transaction.objects.create(sourceAccount=source, destAccount=dest, amount=amount, state=DECLINED)
             else:
                 source.balance -= amount
                 source.save()
                 return Transaction.objects.create(sourceAccount=source, amount=amount,
-                                                  status='Completed')
+                                                  state=COMPLETED)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -98,7 +99,7 @@ class TransactionsCreateView(CreateAPIView):
         transaction = self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response(
-            data={'data': {'transactionNumber': serializer.data.get('id')},
+            data={'data': {'transactionNumber': transaction.id, 'transaction_state': transaction.state},
                   'error': 'false'},
             status=HTTP_201_CREATED,
             headers=headers

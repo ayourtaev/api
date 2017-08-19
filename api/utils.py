@@ -1,5 +1,6 @@
 from fixerio import Fixerio
 from random import randint
+from decimal import Decimal
 
 
 def get_account_identifier():
@@ -9,5 +10,5 @@ def get_account_identifier():
 def calc_currency(currency, amount):
     fxrio = Fixerio(symbols=[currency])
     response = fxrio.latest()
-    summ_amount = amount * response['rates'][currency]
+    summ_amount = Decimal(amount) * Decimal(response['rates'][currency])
     return summ_amount

@@ -1,6 +1,8 @@
+from decimal import Decimal
 from rest_framework import serializers
 from rest_framework.status import HTTP_422_UNPROCESSABLE_ENTITY
 from api.models import Account, Transaction
+from core.exceptions import CustomValidationError
 
 
 class AccountSerializer(serializers.ModelSerializer):
@@ -13,14 +15,15 @@ class AccountSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         if not self.initial_data.get('currency'):
-            raise serializers.ValidationError(code=HTTP_422_UNPROCESSABLE_ENTITY,
-                                              detail={'message': '"currency" is required field',
-                                                      'error': 'true'})
+            raise CustomValidationError(detail={'message': '"currency" is required field',
+                                                'error': 'true'})
         if self.initial_data.get('currency') not in ['USD', 'EUR', 'GBR', 'CHF']:
-            raise serializers.ValidationError(code=HTTP_422_UNPROCESSABLE_ENTITY,
-                                              detail={
-                                                  'message': '"currency" should be one of "USD", "EUR", "GBR" or "CHF"',
-                                                  'error': 'true'})
+            raise CustomValidationError(detail={'message': '"currency" should be one of "USD", "EUR", "GBR" or "CHF"',
+                                                'error': 'true'})
+        if self.initial_data.get('balance') and self.initial_data.get('balance') < 0:
+            raise CustomValidationError(detail={'message': 'negative balance on any account are not permitted.',
+                                                'error': 'true'})
+
         return super().validate(attrs)
 
     def create(self, attrs):
@@ -43,37 +46,30 @@ class TransactionSerializer(serializers.ModelSerializer):
         dest = self.initial_data.get('destAccount')
         amount = self.initial_data.get('amount')
         if amount < 0:
-            raise serializers.ValidationError(code=HTTP_422_UNPROCESSABLE_ENTITY,
-                                              detail={'message': 'amount can\'t be less then 0',
-                                                      'error': 'true'})
+            raise CustomValidationError(detail={'message': 'amount can\'t be less then 0',
+                                                'error': 'true'})
         if not source and not dest:
-            raise serializers.ValidationError(code=HTTP_422_UNPROCESSABLE_ENTITY,
-                                              detail={'message': '"sourceAccount" and "destAccount" are not specified',
-                                                      'error': 'true'})
+            raise CustomValidationError(detail={'message': '"sourceAccount" and "destAccount" are not specified',
+                                                'error': 'true'})
         if source == dest:
-            raise serializers.ValidationError(code=HTTP_422_UNPROCESSABLE_ENTITY,
-                                              detail={
-                                                  'message': '"sourceAccount" and "destAccount" numbers are identical',
-                                                  'error': 'true'})
+            raise CustomValidationError(detail={'message': '"sourceAccount" and "destAccount" numbers are identical',
+                                                'error': 'true'})
         if source and len(source) < 8 or dest and len(dest) < 8:
-            raise serializers.ValidationError(code=HTTP_422_UNPROCESSABLE_ENTITY,
-                                              detail={
-                                                  'message': '"sourceAccount" or "destAccount" contain less than 8 characters',
-                                                  'error': 'true'})
-        if not Account.objects.filter(
-                identifier=source).first() and source:
-            raise serializers.ValidationError(code=HTTP_422_UNPROCESSABLE_ENTITY,
-                                              detail={
-                                                  'message': 'wrong number of sourceAccount',
-                                                  'error': 'true'})
-        if not Account.objects.filter(
-                identifier=dest).first() and dest:
-            raise serializers.ValidationError(code=HTTP_422_UNPROCESSABLE_ENTITY,
-                                              detail={
-                                                  'message': 'wrong number of destAccount',
-                                                  'error': 'true'})
+            raise CustomValidationError(
+                detail={'message': '"sourceAccount" or "destAccount" contain less than 8 digits',
+                        'error': 'true'})
+        if not Account.objects.filter(identifier=source).first() and source:
+            raise CustomValidationError(detail={'message': 'wrong number of sourceAccount',
+                                                'error': 'true'})
+        if not Account.objects.filter(identifier=dest).first() and dest:
+            raise CustomValidationError(detail={'message': 'wrong number of destAccount',
+                                                'error': 'true'})
+        if Account.objects.filter(identifier=dest).first() and \
+            len(str(Account.objects.filter(identifier=dest).first().balance + Decimal(amount))) > 10:
+            raise CustomValidationError(detail={'message': 'the amount  is too lage for that account balance'})
 
         return super().validate(attrs)
+
 
 class AccountDetailsSerializer(serializers.Serializer):
     identifier = serializers.CharField(max_length=8)

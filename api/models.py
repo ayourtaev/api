@@ -1,22 +1,23 @@
 from uuid import uuid4
 from django.db import models
 
+from api.constants import DECLINED, COMPLETED, CREATED, GBR, EUR, USD, CHF
 from api.utils import get_account_identifier
 
 
 class Account(models.Model):
     CURRENCY_CHOICES = (
-        ('USD', 'USD'),
-        ('EUR', 'EUR'),
-        ('GBR', 'GBR'),
-        ('CHF', 'CHF'),
+        (USD, USD),
+        (EUR, EUR),
+        (GBR, GBR),
+        (CHF, CHF),
     )
 
     identifier = models.CharField(max_length=8, primary_key=True, default=get_account_identifier)
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     updated_at = models.DateTimeField(auto_now=True, editable=False)
-    currency = models.CharField(max_length=5, choices=CURRENCY_CHOICES, default='USD')
+    currency = models.CharField(max_length=5, choices=CURRENCY_CHOICES, default=USD)
 
     class Meta:
         verbose_name = 'Account'
@@ -30,16 +31,16 @@ class Account(models.Model):
 
 class Transaction(models.Model):
     TRANSACTION_STATES = (
-        ('Completed', 'Completed'),
-        ('Declined', 'Declined'),
-        ('Created', 'Created')
+        (COMPLETED, COMPLETED),
+        (DECLINED, DECLINED),
+        (CREATED, CREATED)
     )
     id = models.CharField(max_length=8, primary_key=True, default=get_account_identifier)
-    sourceAccount = models.ForeignKey('api.Account', related_name='sourceAccount', blank=True)
-    destAccount = models.ForeignKey('api.Account', related_name='destAccount', blank=True)
+    sourceAccount = models.ForeignKey('api.Account', related_name='sourceAccount', blank=True, null=True)
+    destAccount = models.ForeignKey('api.Account', related_name='destAccount', blank=True, null=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
-    state = models.CharField(max_length=10, choices=TRANSACTION_STATES, default='Created')
+    state = models.CharField(max_length=10, choices=TRANSACTION_STATES, default=CREATED)
 
     class Meta:
         verbose_name = 'Transaction'
