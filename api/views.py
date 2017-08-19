@@ -1,6 +1,6 @@
 from django.db.models import Q
-from fixerio import Fixerio
-from rest_framework import generics, status
+
+from rest_framework import generics
 from rest_framework.generics import CreateAPIView
 from rest_framework.renderers import TemplateHTMLRenderer
 from rest_framework.response import Response
@@ -10,7 +10,7 @@ from rest_framework.views import APIView
 from api.models import Account, Transaction
 from api.permissions import AuthTokenKeeper
 from api.serializers import AccountDetailsSerializer, AccountSerializer, TransactionSerializer
-
+from api.utils import calc_currency
 
 # UI
 
@@ -32,9 +32,7 @@ class ListOfAccounts(generics.ListAPIView):
     def get(self, request, *args, **kwargs):
         return Response({'list_of_accounts': self.get_queryset()})
 
-
 # API
-
 
 class AccountCreateView(CreateAPIView):
     model = Account
@@ -58,21 +56,15 @@ class TransactionsCreateView(CreateAPIView):
     permission_classes = (AuthTokenKeeper,)
     serializer_class = TransactionSerializer
 
-    def calc_currency(self, currency, amount):
-        fxrio = Fixerio(symbols=[currency])
-        response = fxrio.latest()
-        summ_amount = amount * response['rates'][currency]
-        return summ_amount
-
     def perform_create(self, serializer):
-
-        source = serializer.validated_data.get('sourceAccount')
-        dest = serializer.validated_data.get('destAccount')
+        source = Account.objects.filter(identifier=serializer.validated_data.get('sourceAccount')).first()
+        dest = Account.objects.filter(identifier=serializer.validated_data.get('destAccount')).first()
         amount = serializer.validated_data.get('amount')
+
         if source and dest:
             if source.currency != dest.currency:
-                source_calc = self.calc_currency(source.currency, amount)
-                dest_calc = self.calc_currency(dest.currency, amount)
+                source_calc = calc_currency(source.currency, amount)
+                dest_calc = calc_currency(dest.currency, amount)
                 if source.balance - source_calc < 0:
                     return Transaction.objects.create(sourceAccount=source, destAccount=dest, amount=amount,
                                                       status='Declined')
@@ -86,7 +78,7 @@ class TransactionsCreateView(CreateAPIView):
                                                       status='Completed')
 
         if not source:
-            dest_calc = self.calc_currency(dest.currency, amount)
+            dest_calc = calc_currency(dest.currency, amount)
             dest.balance += dest_calc
             dest.save()
             return Transaction.objects.create(sourceAccount=source, destAccount=dest, amount=amount,

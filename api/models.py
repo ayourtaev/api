@@ -35,8 +35,8 @@ class Transaction(models.Model):
         ('Created', 'Created')
     )
     id = models.CharField(max_length=8, primary_key=True, default=get_account_identifier)
-    sourceAccount = models.ForeignKey('api.Account', related_name='sourceAccount', blank=True, Null=True)
-    destAccount = models.ForeignKey('api.Account', related_name='destAccount', blank=True, Null=True)
+    sourceAccount = models.ForeignKey('api.Account', related_name='sourceAccount', blank=True)
+    destAccount = models.ForeignKey('api.Account', related_name='destAccount', blank=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     state = models.CharField(max_length=10, choices=TRANSACTION_STATES, default='Created')
@@ -47,7 +47,7 @@ class Transaction(models.Model):
 
     def __str__(self):
         return 'sourceAccount: {sourceAccount}, destAccount: {destAccount}, amount: {amount}'.format(
-            source=self.sourceAccount.identifier, destAccount=self.destAccount.identifier, amount=self.amount
+            sourceAccount=self.sourceAccount.identifier, destAccount=self.destAccount.identifier, amount=self.amount
         )
 
 

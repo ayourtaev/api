@@ -75,25 +75,6 @@ class TransactionSerializer(serializers.ModelSerializer):
 
         return super().validate(attrs)
 
-        # def create(self, attrs):
-        #     transaction = Transaction.objects.create(
-        #         sourceAccount=Account.objects.get(identifier=attrs.get('sourceAccount')),
-        #         destAccount=Account.objects.get(identifier=attrs.get('destAccount')),
-        #         amount=attrs.get('amount'))
-        #     return transaction
-
-
-#
-# class TypeOfTransactionSerializer(serializers.Serializer):
-#     class Meta:
-#         model = Transaction
-#         fields = '__all__'
-#
-#     def validate(self, attrs):
-#         transaction = Transaction.objects.get(id=attrs.get('id'))
-#         if source
-
-
 class AccountDetailsSerializer(serializers.Serializer):
     identifier = serializers.CharField(max_length=8)
     balance = serializers.DecimalField(max_digits=10, decimal_places=2)
