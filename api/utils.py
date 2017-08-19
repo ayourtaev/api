@@ -10,5 +10,7 @@ def get_account_identifier():
 def calc_currency(currency, amount):
     fxrio = Fixerio(symbols=[currency])
     response = fxrio.latest()
+    if currency == response.get('base'):
+        return Decimal(amount)
     summ_amount = Decimal(amount) * Decimal(response['rates'][currency])
-    return summ_amount
+    return summ_amount.quantize(Decimal('1.00'))

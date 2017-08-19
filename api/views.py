@@ -15,6 +15,7 @@ from api.permissions import AuthTokenKeeper
 from api.serializers import AccountDetailsSerializer, AccountSerializer, TransactionSerializer
 from api.utils import calc_currency
 
+
 # UI
 
 class AccountTransactions(generics.RetrieveAPIView):
@@ -34,6 +35,7 @@ class ListOfAccounts(generics.ListAPIView):
 
     def get(self, request, *args, **kwargs):
         return Response({'list_of_accounts': self.get_queryset()})
+
 
 # API
 
@@ -78,6 +80,17 @@ class TransactionsCreateView(CreateAPIView):
                     dest.save()
                     return Transaction.objects.create(sourceAccount=source, destAccount=dest, amount=amount,
                                                       state=DECLINED)
+            else:
+                if source.balance - amount < 0:
+                    return Transaction.objects.create(sourceAccount=source, destAccount=dest, amount=amount,
+                                                      state=DECLINED)
+                else:
+                    source.balance -= amount
+                    dest.balance += amount
+                    source.save()
+                    dest.save()
+                    return Transaction.objects.create(sourceAccount=source, destAccount=dest, amount=amount,
+                                                      state=COMPLETED)
 
         if not source:
             dest.balance += amount
@@ -105,6 +118,8 @@ class TransactionsCreateView(CreateAPIView):
             headers=headers
         )
 
+
+# Custom API
 
 class AccountDetailInformation(APIView):
     permission_classes = (AuthTokenKeeper,)

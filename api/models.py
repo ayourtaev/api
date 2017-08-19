@@ -1,7 +1,7 @@
 from uuid import uuid4
 from django.db import models
 
-from api.constants import DECLINED, COMPLETED, CREATED, GBR, EUR, USD, CHF
+from api.constants import DECLINED, COMPLETED, CREATED, GBP, EUR, USD, CHF
 from api.utils import get_account_identifier
 
 
@@ -9,7 +9,7 @@ class Account(models.Model):
     CURRENCY_CHOICES = (
         (USD, USD),
         (EUR, EUR),
-        (GBR, GBR),
+        (GBP, GBP),
         (CHF, CHF),
     )
 

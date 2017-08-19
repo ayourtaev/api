@@ -1,6 +1,6 @@
 from decimal import Decimal
 from rest_framework import serializers
-from rest_framework.status import HTTP_422_UNPROCESSABLE_ENTITY
+from api.constants import CHF, GBP, EUR, USD
 from api.models import Account, Transaction
 from core.exceptions import CustomValidationError
 
@@ -17,7 +17,7 @@ class AccountSerializer(serializers.ModelSerializer):
         if not self.initial_data.get('currency'):
             raise CustomValidationError(detail={'message': '"currency" is required field',
                                                 'error': 'true'})
-        if self.initial_data.get('currency') not in ['USD', 'EUR', 'GBR', 'CHF']:
+        if self.initial_data.get('currency') not in [USD, EUR, GBP, CHF]:
             raise CustomValidationError(detail={'message': '"currency" should be one of "USD", "EUR", "GBR" or "CHF"',
                                                 'error': 'true'})
         if self.initial_data.get('balance') and self.initial_data.get('balance') < 0:
@@ -65,7 +65,7 @@ class TransactionSerializer(serializers.ModelSerializer):
             raise CustomValidationError(detail={'message': 'wrong number of destAccount',
                                                 'error': 'true'})
         if Account.objects.filter(identifier=dest).first() and \
-            len(str(Account.objects.filter(identifier=dest).first().balance + Decimal(amount))) > 10:
+                        len(str(Account.objects.filter(identifier=dest).first().balance + Decimal(amount))) > 10:
             raise CustomValidationError(detail={'message': 'the amount  is too lage for that account balance'})
 
         return super().validate(attrs)

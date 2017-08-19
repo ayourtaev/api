@@ -2,12 +2,13 @@ from decimal import Decimal
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from api.constants import DECLINED, CHF, GBR, USD, EUR
-from api.models import Account, AuthToken, Transaction
+from api.constants import DECLINED, CHF, GBP, USD, EUR
+from api.models import Account, AuthToken
+
+from api.utils import calc_currency
 
 
 class BaseTest(APITestCase):
-    currency = [EUR, USD, GBR, CHF]
 
     def setUp(self):
         self.auth_token = AuthToken.objects.create()
@@ -53,10 +54,10 @@ class AccountTests(BaseAccountTest):
 
     def test_create_account_positive_gbr(self):
         """use correct data for account creations"""
-        data = {'currency': GBR}
+        data = {'currency': GBP}
         response = self.client.post(path=self.url, data=data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Account.objects.get().currency, GBR)
+        self.assertEqual(Account.objects.get().currency, GBP)
 
     def test_create_account_positive_chf(self):
         """use correct data for account creations"""
@@ -104,7 +105,7 @@ class TransactionExternalTests(BaseTransactionTest):
         ransactions with only a source account are called withdrawals."""
 
     def test_withdraw_below_zero(self):
-        self.sourceAccount = Account.objects.create(currency='USD')
+        self.sourceAccount = Account.objects.create(currency=USD)
 
         data = {'sourceAccount': self.sourceAccount.identifier,
                 'amount': 50000}
@@ -113,7 +114,7 @@ class TransactionExternalTests(BaseTransactionTest):
         self.assertEqual(response.data['data']['transaction_state'], DECLINED)
 
     def test_withdraw_positive(self):
-        self.sourceAccount = Account.objects.create(currency='USD', balance='50000')
+        self.sourceAccount = Account.objects.create(currency=USD, balance='50000')
 
         data = {'sourceAccount': self.sourceAccount.identifier,
                 'amount': 777}
@@ -133,14 +134,82 @@ class TransactionExternalTests(BaseTransactionTest):
         self.assertEqual(Account.objects.get().balance, Decimal(before) + Decimal(data['amount']))
 
     def test_deposit_over_limit(self):
-        self.destAccount = Account.objects.create(currency='USD', balance='9999999.00')
+        self.destAccount = Account.objects.create(currency=USD, balance='9999999.00')
 
         data = {'destAccount': self.destAccount.identifier,
                 'amount': 99999999.99}
         response = self.client.post(path=self.url, data=data, format='json')
         self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
 
+
 class TransactionInternalTests(BaseTransactionTest):
     """Internal transfers convert the transferred amount if the source
     and destination accounts are denominated in different currencies."""
 
+    def test_with_the_same_currency(self):
+        self.sourceAccount = Account.objects.create(currency=USD, balance=20000)
+        self.destAccount = Account.objects.create(currency=USD, balance=50000)
+
+        source_before = self.sourceAccount.balance
+        dest_before = self.destAccount.balance
+
+        data = {'sourceAccount': self.sourceAccount.identifier,
+                'destAccount': self.destAccount.identifier,
+                'amount': 10000}
+        response = self.client.post(path=self.url, data=data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Account.objects.get(identifier=self.sourceAccount.identifier).balance,
+                         source_before - Decimal(data['amount']))
+        self.assertEqual(Account.objects.get(identifier=self.destAccount.identifier).balance,
+                         dest_before + Decimal(data['amount']))
+
+    def test_with_negative_result(self):
+        self.sourceAccount = Account.objects.create(currency=USD, balance=20000)
+        self.destAccount = Account.objects.create(currency=USD, balance=50000)
+
+        source_before = self.sourceAccount.balance
+        dest_before = self.destAccount.balance
+
+        data = {'sourceAccount': self.sourceAccount.identifier,
+                'destAccount': self.destAccount.identifier,
+                'amount': 30000}
+        response = self.client.post(path=self.url, data=data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['data']['transaction_state'], DECLINED)
+        self.assertEqual(Account.objects.get(identifier=self.sourceAccount.identifier).balance, source_before)
+        self.assertEqual(Account.objects.get(identifier=self.destAccount.identifier).balance, dest_before)
+
+    def test_with_diff_currency(self):
+        self.sourceAccount = Account.objects.create(currency=GBP, balance=40000)
+        self.destAccount = Account.objects.create(currency=EUR, balance=20000)
+
+        source_before = self.sourceAccount.balance
+        dest_before = self.destAccount.balance
+
+        data = {'sourceAccount': self.sourceAccount.identifier,
+                'destAccount': self.destAccount.identifier,
+                'amount': 5000}
+
+        response = self.client.post(path=self.url, data=data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Account.objects.get(identifier=self.sourceAccount.identifier).balance,
+                         source_before - calc_currency(self.sourceAccount.currency, data['amount']))
+        self.assertEqual(Account.objects.get(identifier=self.destAccount.identifier).balance,
+                         dest_before + calc_currency(self.destAccount.currency, data['amount']))
+
+    def test_with_diff_currency_below_zero(self):
+        self.sourceAccount = Account.objects.create(currency=GBP, balance=40000)
+        self.destAccount = Account.objects.create(currency=EUR, balance=20000)
+
+        source_before = self.sourceAccount.balance
+        dest_before = self.destAccount.balance
+
+        data = {'sourceAccount': self.sourceAccount.identifier,
+                'destAccount': self.destAccount.identifier,
+                'amount': 50000}
+
+        response = self.client.post(path=self.url, data=data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['data']['transaction_state'], DECLINED)
+        self.assertEqual(Account.objects.get(identifier=self.sourceAccount.identifier).balance, source_before)
+        self.assertEqual(Account.objects.get(identifier=self.destAccount.identifier).balance, dest_before)

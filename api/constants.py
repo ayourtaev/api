@@ -4,5 +4,5 @@ CREATED = 'created'
 
 EUR = 'EUR'
 USD = 'USD'
-GBR = 'GBR'
+GBP = 'GBP'
 CHF = 'CHF'
