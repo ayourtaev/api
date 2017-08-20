@@ -48,8 +48,8 @@ Authorization| Yes  | Shared key for authorization
 
  NAME  | Is Mandatory? | Description  
 ------------ | ------------- | -------
-    currency   |      Yes      | Type of currecny. Can be EUR, USD, GBP or CHF
-    balance    |      No      | Start balance on you account can't be more then 99999999.99 and less then 0. Max length - 10 digits            
+    currency   |      Yes      |  Type of currecny. Can be EUR, USD, GBP or CHF   
+    balance    |      No      |  Start balance on you account can't be more then 99999999.99 and less then 0. Max length - 10 digits   
       
 
 **Response Codes:**
@@ -87,16 +87,16 @@ Parameters
 
  NAME  | Is Mandatory? | Description  
 ------------ | ------------- | -------
-Content-Type|      Yes      |Data exchange takes place by means of json messaging
-Authorization| Yes  | Shared key for authorization
+Content-Type   |      Yes      |Data exchange takes place by means of json messaging
+Authorization   |    Yes     |    Shared key for authorization
 
 **Body parameters:**
 
  NAME  | Is Mandatory? | Description  
 ------------ | ------------- | -------
-    sourceAccount   |      No      | Source account number, should be if destAccount is absent. Max length - 10 digits
-  destAccount  |      No      | Destination account number, should be if sourceAccount is absent. Max length - 10 digits
-  amount | Yes | Amount of transaction, change balance for account or accounts, can't be more then 99999999.99
+sourceAccount    |      No      |   Source account number, should be if destAccount is absent. Max length - 10 digits
+destAccount    |      No      |   Destination account number, should be if sourceAccount is absent. Max length - 10 digits
+amount    |   Yes   |   Amount of transaction, change balance for account or accounts, can't be more then 99999999.99
 
 
 **Response Codes:**
