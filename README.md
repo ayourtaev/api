@@ -1,7 +1,7 @@
 s4u
 ==============
 
-#Installation
+# Installation
 --------------
 * Create virtualenv
 **mkvirtualenv env -p python3.5**
@@ -10,11 +10,11 @@ s4u
 **pip install -r req.txt**
 
 
-#Running tests
+# Running tests
 --------------
 * ./manage.py tests
 
-#Running
+# Running
 --------------
 * Migrate database
 **./manage.py migrate**
@@ -23,20 +23,20 @@ s4u
 * Run application
 **./manage.py runserver**
 
-##Additional
+## Additional
 --------------
 create new auth token key: 
 **./manage.py create_auth_token**
 ![Example](http://joxi.ru/8235YNNhJY1dpr.png)
 
-##URL desctiption:
+## URL desctiption:
 ---------------
-##Accounts API
+## Accounts API
 --------------
 
 Method: POST **/api/v1/accounts**
 
-#Parameters
+# Parameters
 **Header parameters:**
 
  NAME  | Is Mandatory? | Description  
@@ -49,7 +49,7 @@ Authorization| Yes  | Shared key for authorization
  NAME  | Is Mandatory? | Description  
 ------------ | ------------- | -------
     currency   |      Yes      | Type of currecny. Can be EUR, USD, GBP or CHF
-  balance  |      No      |Start balance on you account can't be more then 99999999.99 and less then 0. Max length - 10 digits            
+    balance    |      No      | Start balance on you account can't be more then 99999999.99 and less then 0. Max length - 10 digits            
       
 
 **Response Codes:**
@@ -77,7 +77,7 @@ Authorization| Yes  | Shared key for authorization
     "error": "false"
 }
 ```
-##Transaction api
+## Transaction api
 --------------
 
 Method: POST **/api/v1/transactions**
@@ -94,8 +94,8 @@ Authorization| Yes  | Shared key for authorization
 
  NAME  | Is Mandatory? | Description  
 ------------ | ------------- | -------
-    sourceAccount   |      No      |Source account number, should be if destAccount is absent. Max length - 10 digits
-  destAccount  |      No      |Destination account number, should be if sourceAccount is absent. Max length - 10 digits
+    sourceAccount   |      No      | Source account number, should be if destAccount is absent. Max length - 10 digits
+  destAccount  |      No      | Destination account number, should be if sourceAccount is absent. Max length - 10 digits
   amount | Yes | Amount of transaction, change balance for account or accounts, can't be more then 99999999.99
 
 
@@ -139,7 +139,7 @@ Authorization| Yes  | Shared key for authorization
     "error": "false"
 }
 ```
-##UI
+## UI
 --------------
 List of accaunts availabl with help of links: **/api/v1/list_of_accounts**
 
