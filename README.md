@@ -3,7 +3,7 @@ s4u
 
 # Demo version of application
 * **docker run -p 8080:8000 -ti yourtaev/s4u**
-* The list of accounts: **127.0.0.1:8080/api/v1/list_of_accounts**
+* The list of accounts: **http://127.0.0.1:8080/api/v1/list_of_accounts**
 * Details of account: **http://127.0.0.1:8080/api/v1/account_transactions/44882998/**
  * create account:
   curl -H "Content-Type: application/json" -X POST -H "Content-type: application-json" -H "Authorization: 5a04f4f203ab4b9382977e6ac13d68ad" -d '{"currency":"GBP","balance": "1000"}' http://localhost:8080/api/v1/accounts
