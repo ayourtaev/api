@@ -45,7 +45,7 @@ class TransactionSerializer(serializers.ModelSerializer):
         source = self.initial_data.get('sourceAccount')
         dest = self.initial_data.get('destAccount')
         amount = self.initial_data.get('amount')
-        if amount < 0:
+        if Decimal(amount) < 0:
             raise CustomValidationError(detail={'message': 'amount can\'t be less then 0',
                                                 'error': 'true'})
         if not source and not dest:
