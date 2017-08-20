@@ -1,5 +1,17 @@
 s4u
+ntent-Type: application/json" -X POST -H "Content-type: application-json" -H "Authorization: 5a04f4f203ab4b9382977e6ac13d68ad" -d '{"sourceAccount":"38817840","amount": "1000", "destAccount": "72225007"}' http://localhost:8080/api/v1/transactions
 ==============
+
+# Demo version of application
+* **docker run -p 8080:8000 -ti yourtaev/s4u**
+* The list of accounts: **127.0.0.1:8080/api/v1/list_of_accounts**
+* Details of account: **http://127.0.0.1:8080/api/v1/account_transactions/44882998/**
+* API
+ * create account:
+  curl -H "Content-Type: application/json" -X POST -H "Content-type: application-json" -H "Authorization: 5a04f4f203ab4b9382977e6ac13d68ad" -d '{"currency":"GBP","balance": "1000"}' http://localhost:8080/api/v1/accounts
+ 
+ * create transaction:
+  curl -H "Content-Type: application/json" -X POST -H "Content-type: application-json" -H "Authorization: 5a04f4f203ab4b9382977e6ac13d68ad" -d '{"sourceAccount":"38817840","amount": "1000", "destAccount": "72225007"}' http://localhost:8080/api/v1/transactions
 
 # Installation
 --------------
@@ -27,7 +39,16 @@ s4u
 --------------
 create new auth token key: 
 **./manage.py create_auth_token**
+token for fast access: 0c71d0f1e502425595a13123bf86f713
 ![Example](http://joxi.ru/8235YNNhJY1dpr.png)
+
+**curl command for example:**
+create account: 
+curl -H "Content-Type: application/json" -X POST -H "Content-type: application-json" -H "Authorization: 5a04f4f203ab4b9382977e6ac13d68ad" -d '{"currency":"GBP","balance": "1000"}' http://localhost:8000/api/v1/accounts
+
+create transaction:
+curl -H "Content-Type: application/json" -X POST -H "Content-type: application-json" -H "Authorization: 5a04f4f203ab4b9382977e6ac13d68ad" -d '{"sourceAccount":"38817840","amount": "1000", "destAccount": "72225007"}' http://localhost:8000/api/v1/transactions
+
 
 ## URL desctiption:
 ---------------

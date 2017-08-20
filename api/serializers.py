@@ -20,7 +20,7 @@ class AccountSerializer(serializers.ModelSerializer):
         if self.initial_data.get('currency') not in [USD, EUR, GBP, CHF]:
             raise CustomValidationError(detail={'message': '"currency" should be one of "USD", "EUR", "GBR" or "CHF"',
                                                 'error': 'true'})
-        if self.initial_data.get('balance') and self.initial_data.get('balance') < 0:
+        if self.initial_data.get('balance') and Decimal(self.initial_data.get('balance')) < 0:
             raise CustomValidationError(detail={'message': 'negative balance on any account are not permitted.',
                                                 'error': 'true'})
 
