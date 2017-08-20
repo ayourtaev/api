@@ -41,6 +41,7 @@ class Transaction(models.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     state = models.CharField(max_length=10, choices=TRANSACTION_STATES, default=CREATED)
+    reason = models.TextField(max_length=200, blank=True, null=True)
 
     class Meta:
         verbose_name = 'Transaction'

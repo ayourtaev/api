@@ -65,25 +65,28 @@ class TransactionsCreateView(CreateAPIView):
         source = Account.objects.filter(identifier=serializer.validated_data.get('sourceAccount')).first()
         dest = Account.objects.filter(identifier=serializer.validated_data.get('destAccount')).first()
         amount = Decimal(serializer.validated_data.get('amount'))
+        self.reason = ''
 
         if source and dest:
             if source.currency != dest.currency:
                 source_calc = calc_currency(source.currency, amount)
                 dest_calc = calc_currency(dest.currency, amount)
                 if source.balance - source_calc < 0:
+                    self.reason = 'negative balance on any account are not permitted'
                     return Transaction.objects.create(sourceAccount=source, destAccount=dest, amount=amount,
-                                                      state=DECLINED)
+                                                      state=DECLINED, reason=self.reason)
                 else:
                     source.balance -= source_calc
                     source.save()
                     dest.balance += dest_calc
                     dest.save()
                     return Transaction.objects.create(sourceAccount=source, destAccount=dest, amount=amount,
-                                                      state=DECLINED)
+                                                      state=COMPLETED)
             else:
                 if source.balance - amount < 0:
+                    self.reason = 'negative balance on any account are not permitted'
                     return Transaction.objects.create(sourceAccount=source, destAccount=dest, amount=amount,
-                                                      state=DECLINED)
+                                                      state=DECLINED, reason=self.reason)
                 else:
                     source.balance -= amount
                     dest.balance += amount
@@ -99,7 +102,9 @@ class TransactionsCreateView(CreateAPIView):
                                               state=COMPLETED)
         if not dest:
             if source.balance - amount < 0:
-                return Transaction.objects.create(sourceAccount=source, destAccount=dest, amount=amount, state=DECLINED)
+                self.reason = 'negative balance on any account are not permitted'
+                return Transaction.objects.create(sourceAccount=source, destAccount=dest, amount=amount, state=DECLINED,
+                                                  reason=self.reason)
             else:
                 source.balance -= amount
                 source.save()
@@ -111,9 +116,11 @@ class TransactionsCreateView(CreateAPIView):
         serializer.is_valid(raise_exception=True)
         transaction = self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
+        data = {'data': {'transactionNumber': transaction.id, 'transaction_state': transaction.state},
+                'error': 'false'}
+        if self.reason: data.update({'reson': self.reason})
         return Response(
-            data={'data': {'transactionNumber': transaction.id, 'transaction_state': transaction.state},
-                  'error': 'false'},
+            data=data,
             status=HTTP_201_CREATED,
             headers=headers
         )

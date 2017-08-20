@@ -4,20 +4,30 @@
         <thead>
         <tr>
             <th>Source account</th>
+            <th>Source currency</th>
             <th>amount</th>
             <th>Destination account</th>
+            <th>Dest currency</th>
             <th>Date of transactions</th>
             <th>State of transactions</th>
+            <th>The reason</th>
         </tr>
         </thead>
         <tbody>
         {% for transaction in list_of_transactions %}
             <tr>
                 <th>{{ transaction.sourceAccount.identifier }}</th>
+                <th>{{ transaction.sourceAccount.currency }}</th>
                 <th>{{ transaction.amount }}</th>
                 <th>{{ transaction.destAccount.identifier }}</th>
+                <th>{{ transaction.destAccount.currency }}</th>
                 <th>{{ transaction.created_at }}</th>
                 <th>{{ transaction.state }}</th>
+                {% if transaction.reason %}
+                <th>{{ transaction.reason }}</th>
+                {% else %}
+                <th>-</th>
+                {% endif %}
             </tr>
         {% endfor %}
         </tbody>
