@@ -48,8 +48,8 @@ Authorization| Yes  | Shared key for authorization
 
  NAME  | Is Mandatory? | Description  
 ------------ | ------------- | -------
-    currency   |      Yes      |  Type of currecny. Can be EUR, USD, GBP or CHF   
-    balance    |      No      |  Start balance on you account can't be more then 99999999.99 and less then 0. Max length - 10 digits   
+currency   |      Yes      |  Type of currecny. Can be EUR, USD, GBP or CHF   
+balance    |      No      |  Start balance on you account can't be more then 99999999.99 and less then 0. Max length - 10 digits   
       
 
 **Response Codes:**
